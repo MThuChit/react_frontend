@@ -1,0 +1,89 @@
+/* make sure padding/border included in width so inputs don't overflow grid columns */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ensure label blocks inside grid can shrink */
+.row > label {
+  min-width: 0;
+}
+
+/* modal-specific label centering (keeps table labels unchanged) */
+.modalContent .label {
+  text-align: center;
+}
+
+/* existing styles */
+:root{
+  --bg:#0f1720;
+  --panel:#08121a;
+  --panel-2:#0b1720;
+  --muted:#94a3b8;
+  --accent:#1976d2;
+  --danger:#b33939;
+  --input-bg:#03060a;
+  --input-border:#27323a;
+  --card-shadow: 0 10px 30px rgba(2,6,12,0.6);
+}
+
+/* layout */
+.users-container { max-width: 1000px; margin: 28px auto; color: #eaeaea; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 0 18px; }
+.users-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+.users-header h2 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+
+/* actions */
+.users-actions { display: flex; gap: 12px; align-items: center; }
+.btn { padding: 10px 14px; border-radius: 10px; color: #fff; cursor: pointer; border: none; font-weight: 600; box-shadow: none; transition: transform .08s ease, box-shadow .12s ease; }
+.btn:active { transform: translateY(1px); }
+.btn.dark { background: #0b0b0b; border: 1px solid #2e3640; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+.btn.primary { background: linear-gradient(180deg,var(--accent),#1461b6); box-shadow: 0 6px 18px rgba(25,118,210,0.16); }
+
+/* feedback */
+.error { background: #3a1b1b; color: #ffd7d7; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+
+/* table */
+.table-wrap { overflow-x: auto; border: 1px solid #2f3a40; border-radius: 8px; padding: 10px; background: rgba(255,255,255,0.02); }
+.users-table { width: 100%; border-collapse: collapse; color: #eaeaea; }
+.users-table .th { text-align: left; padding: 12px; border-bottom: 1px solid #2f3a40; font-size: 14px; background: rgba(0,0,0,0.08); }
+.users-table .td { padding: 12px; border-bottom: 1px solid #22272b; font-size: 13px; vertical-align: middle; }
+.users-table .td.id { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--muted); }
+
+/* action buttons inside rows */
+.actionBtn { padding: 8px 12px; border-radius: 8px; background: #1f2b33; color: #fff; border: none; cursor: pointer; margin-right: 8px; transition: background .12s ease, transform .08s ease; }
+.actionBtn:hover { transform: translateY(-1px); }
+.actionBtn.delete { background: var(--danger); }
+
+/* form basics */
+.label { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+.input { width: 100%; padding: 12px 14px; margin-top: 8px; border-radius: 10px; border: 1px solid var(--input-border); background: var(--input-bg); color: #eef2f7; outline: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.01); transition: border-color .12s ease, box-shadow .12s ease; }
+.input:focus { border-color: rgba(25,118,210,0.9); box-shadow: 0 6px 18px rgba(25,118,210,0.06); }
+
+/* row grid: two columns on wide screens, single column on small screens */
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+@media (max-width:720px) { .row { grid-template-columns: 1fr; } }
+
+/* modal (centered card) */
+.modal { position: fixed; left: 0; top: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(3,6,10,0.6); z-index: 1200; padding: 28px; }
+.modalContent { width: min(820px, 96%); background: linear-gradient(180deg,var(--panel),var(--panel-2)); padding: 34px; border-radius: 16px; box-shadow: var(--card-shadow); color: #e8eef6; }
+
+/* modal header */
+.modalContent h3 { margin: 0 0 4px 0; text-align: center; font-size: 22px; font-weight: 700; }
+.modalContent .subtitle { text-align: center; color: var(--muted); margin-bottom: 18px; }
+
+/* form footer actions */
+.modalActions { margin-top: 20px; display: flex; gap: 12px; justify-content: flex-start; align-items: center; }
+.modalActions .btn { min-width: 110px; }
+
+/* improved spacing for label+input blocks when in single column */
+.labelSmall { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+
+/* make inputs larger on modal */
+.modalContent .input { padding: 12px 14px; font-size: 15px; }
+
+/* help text / errors inside modal */
+.modal .help { margin-top:8px; color: #ffd7b0; font-size:13px; }
+
+/* small niceties */
+.users-table tr:hover { background: rgba(255,255,255,0.01); }
