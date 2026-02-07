@@ -33,6 +33,7 @@ export function UserProvider({ children }) {
                 const newUser = { isLoggedIn: true, name: '', email: email };
                 setUser(newUser);
                 localStorage.setItem("session", JSON.stringify(newUser));
+                return true;
             }
         }
         catch (error) {
@@ -58,4 +59,3 @@ export function UserProvider({ children }) {
 export function useUser() {
     return useContext(UserContext);
 }
- 

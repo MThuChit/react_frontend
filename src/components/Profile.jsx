@@ -1,60 +1,38 @@
+import { Link } from "react-router-dom";
 import { useUser } from "../contexts/UserProvider";
-import { useEffect, useState } from "react";
-import profileImg from '../ss/myprofile.jpg';
-
+import { useEffect, useState, useRef } from "react";
 export default function Profile() {
     const { user, logout } = useUser();
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState({});
+    const [hasImage, setHasImage] = useState(false);
+    const fileInputRef = useRef(null);
     const API_URL = import.meta.env.VITE_API_URL;
-
-    const styles = {
-        container: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '60vh',
-            padding: 20,
-        },
-        header: {
-            marginBottom: 20,
-            fontSize: 28,
-        },
-        card: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            background: 'transparent',
-            padding: 24,
-            borderRadius: 12,
-            maxWidth: 560,
-        },
-        img: {
-            width: 140,
-            height: 140,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            marginBottom: 16,
-            boxShadow: '0 6px 20px rgba(0,0,0,0.4)'
-        },
-        info: {
-            fontSize: 18,
-            lineHeight: 1.8,
-            textAlign: 'center',
-            color: 'inherit'
-        },
-        logoutBtn: {
-            marginTop: 20,
-            background: '#111',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 22px',
-            borderRadius: 10,
-            cursor: 'pointer'
+    console.log(`URL => ${API_URL}`);
+    async function onUpdateImage() {
+        const file = fileInputRef.current?.files[0];
+        if (!file) {
+            alert("Please select a file.");
+            return;
         }
-    };
-
+        const formData = new FormData();
+        formData.append("file", file);
+        try {
+            const response = await fetch(`${API_URL}/api/user/profile/image`, {
+                method: "POST",
+                body: formData,
+                credentials: "include"
+            });
+            if (response.ok) {
+                alert("Image updated successfully.");
+                fetchProfile();
+            } else {
+                alert("Failed to update image.");
+            }
+        } catch (err) {
+            alert("Error uploading image.");
+        }
+    }
     async function fetchProfile() {
         const result = await fetch(`${API_URL}/api/user/profile`, {
             credentials: "include"
@@ -64,6 +42,10 @@ export default function Profile() {
         }
         else {
             const data = await result.json();
+            if (data.profileImage != null) {
+                console.log("has image...");
+                setHasImage(true);
+            }
             console.log("data: ", data);
             setIsLoading(false);
             setData(data);
@@ -73,22 +55,32 @@ export default function Profile() {
         fetchProfile();
     }, []);
     return (
-        <div style={styles.container}>
-            <h3 style={styles.header}>Profile...</h3>
+        <div>
+            <h3>Profile...</h3>
             {
                 isLoading ?
                     <div>Loading...</div> :
-                    <div style={styles.card}>
-                        <img src={profileImg} alt="Profile" style={styles.img} />
-                        <div style={styles.info}>
-                            <div>ID: {data._id}</div>
-                            <div>Email: {data.email}</div>
-                            <div>First Name: {data.firstname}</div>
-                            <div>Last Name: {data.lastname}</div>
-                        </div>
-                        <button onClick={logout} style={styles.logoutBtn}>Logout</button>
+                    <div>
+                        ID: {data._id} <br />
+                        Email: {data.email} <br />
+                        First Name: {data.firstname} <br />
+                        Last Name: {data.lastname} <br />
+                        Image: {hasImage && <img src={`${API_URL}${data.profileImage}`}
+                            width={150} height={150} />} <input type="file" id="profileImage"
+                                name="profileImage" ref={fileInputRef} /> <button onClick={onUpdateImage}>Update
+                                    Image</button> <br />
                     </div>
             }
+            <br />
+
+            <Link to="/Users">
+                <button>Users</button>
+            </Link>
+
+            <Link to="/logout">
+                <button>Logout</button>
+            </Link>
+
         </div>
     )
 }
