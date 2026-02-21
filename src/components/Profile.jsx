@@ -1,91 +1,258 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import "./Profile.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { useUser } from "../context/UserProvider";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 
 export default function Profile() {
+  const { logout } = useUser();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDeletingImage, setIsDeletingImage] = useState(false);
+  const [data, setData] = useState({});
+  const [formData, setFormData] = useState({
+    firstname: "",
+    lastname: "",
+    email: "",
+  });
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const fileInputRef = useRef(null);
-  const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [msg, setMsg] = useState("");
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  async function fetchProfile() {
-    try {
-      const res = await fetch(`${API_URL}/api/user/profile`, { credentials: "include" });
-      if (res.status === 401) { navigate("/logout"); return; }
-      const d = await res.json();
-      setData(d);
-    } catch (e) {
-      console.error(e);
-      setMsg("Failed to load profile");
-    } finally {
-      setLoading(false);
-    }
+  function setMessages({ success = "", error = "" }) {
+    setSuccessMessage(success);
+    setErrorMessage(error);
   }
 
-  useEffect(() => { fetchProfile(); }, []);
+  function updateFormField(field, value) {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function applyProfile(nextProfile) {
+    setData(nextProfile || {});
+    setFormData({
+      firstname: nextProfile?.firstname || "",
+      lastname: nextProfile?.lastname || "",
+      email: nextProfile?.email || "",
+    });
+  }
 
   async function onUpdateImage() {
-    const file = fileInputRef.current?.files?.[0];
-    if (!file) { setMsg("Select a file"); return; }
-    setUploading(true); setMsg("");
+    const file = fileInputRef.current?.files[0];
+    if (!file) {
+      setMessages({ error: "Please select an image file." });
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setMessages({ error: "Only image file types are allowed." });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    setIsUploadingImage(true);
+    setMessages({});
+
     try {
-      const form = new FormData();
-      form.append("profileImage", file);
-      const res = await fetch(`${API_URL}/api/user/profile`, { method: "PATCH", credentials: "include", body: form });
-      if (!res.ok) {
-        const alt = await (await fetch(`${API_URL}/api/user/profile/image`, { method: "POST", credentials: "include", body: form })).json().catch(()=>({}));
-        if (!alt || alt.message) throw new Error("Upload failed");
+      const response = await fetch(`${API_URL}/api/user/profile/image`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (response.status === 401) {
+        logout();
+        return;
       }
-      setMsg("Updated");
-      await fetchProfile();
-    } catch (e) {
-      console.error(e);
-      setMsg("Upload failed");
+
+      if (response.ok) {
+        await fetchProfile();
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        setMessages({ success: "Profile image updated." });
+      } else {
+        const result = await response.json().catch(() => null);
+        setMessages({ error: result?.message || "Failed to update image." });
+      }
+    } catch {
+      setMessages({ error: "Error uploading image." });
     } finally {
-      setUploading(false);
+      setIsUploadingImage(false);
     }
   }
+
+  async function onDeleteImage() {
+    setIsDeletingImage(true);
+    setMessages({});
+
+    try {
+      const response = await fetch(`${API_URL}/api/user/profile/image`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (response.status === 401) {
+        logout();
+        return;
+      }
+      if (response.ok) {
+        await fetchProfile();
+        setMessages({ success: "Profile image removed." });
+      } else {
+        const result = await response.json().catch(() => null);
+        setMessages({ error: result?.message || "Failed to remove image." });
+      }
+    } catch {
+      setMessages({ error: "Error removing image." });
+    } finally {
+      setIsDeletingImage(false);
+    }
+  }
+
+  async function onSaveProfile(event) {
+    event.preventDefault();
+    setIsSaving(true);
+    setMessages({});
+
+    const payload = {
+      firstname: formData.firstname.trim(),
+      lastname: formData.lastname.trim(),
+      email: formData.email.trim(),
+    };
+
+    try {
+      const result = await fetch(`${API_URL}/api/user/profile`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (result.status === 401) {
+        logout();
+        return;
+      }
+
+      if (!result.ok) {
+        const errorData = await result.json().catch(() => null);
+        setMessages({ error: errorData?.message || "Failed to update profile." });
+        return;
+      }
+
+      const updatedProfile = await result.json();
+      applyProfile(updatedProfile);
+      setMessages({ success: "Profile updated." });
+    } catch {
+      setMessages({ error: "Profile update failed." });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      const result = await fetch(`${API_URL}/api/user/profile`, {
+        credentials: "include",
+      });
+      if (result.status === 401) {
+        logout();
+        return;
+      }
+      if (!result.ok) {
+        console.log("Profile load failed:", result.status);
+        return;
+      }
+      const nextData = await result.json();
+      applyProfile(nextData);
+    } catch (err) {
+      console.log("Profile fetch error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [API_URL, logout]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   return (
     <div className="profile-page">
       <div className="profile-card">
-        <h2 className="profile-title">{loading ? "Profile..." : "Profile"}</h2>
+        <div className="profile-header">
+          <div>
+            <p className="eyebrow">Signed in</p>
+            <h2>{(data.firstname || "").trim()} {(data.lastname || "").trim()}</h2>
+            <p className="muted">{data.email || "-"}</p>
+          </div>
+          <div className="avatar">
+            {data.profileImage ? (
+              <img src={`${API_URL}${data.profileImage}`} alt="Profile" />
+            ) : (
+              <div className="avatar-fallback">{(data.firstname || "U")[0]}</div>
+            )}
+          </div>
+        </div>
 
-        <div className="profile-grid">
-          <div className="profile-avatar-wrap">
-            <div className="avatar">
-              {data?.profileImage ? (
-                <img src={data.profileImage.startsWith("http") ? data.profileImage : `${API_URL}${data.profileImage}`} alt="profile" />
-              ) : (
-                <div className="avatar-fallback">{(data?.firstname || "").charAt(0) || "?"}</div>
-              )}
+        {isLoading ? (
+          <div className="muted">Loading profile…</div>
+        ) : (
+          <form className="profile-form" onSubmit={onSaveProfile}>
+            <div className="field profile-id">
+              <label>User ID</label>
+              <input value={data._id || ""} readOnly />
             </div>
-          </div>
+            <div className="field">
+              <label>First Name</label>
+              <input
+                value={formData.firstname}
+                onChange={(event) => updateFormField("firstname", event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Last Name</label>
+              <input
+                value={formData.lastname}
+                onChange={(event) => updateFormField("lastname", event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(event) => updateFormField("email", event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Status</label>
+              <span className="pill">{data.status || "ACTIVE"}</span>
+            </div>
+            <div className="profile-save-row">
+              <button className="btn btn-primary" type="submit" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Profile"}
+              </button>
+            </div>
+          </form>
+        )}
 
-          <div className="profile-info">
-            <div className="info-row"><span className="label">ID:</span><span className="value">{data?._id || "—"}</span></div>
-            <div className="info-row"><span className="label">Email:</span><span className="value">{data?.email || "—"}</span></div>
-            <div className="info-row"><span className="label">First name:</span><span className="value">{data?.firstname || "—"}</span></div>
-            <div className="info-row"><span className="label">Last name:</span><span className="value">{data?.lastname || "—"}</span></div>
-          </div>
+        <div className="upload-row">
+          <input type="file" ref={fileInputRef} accept="image/*" />
+          <button className="btn btn-primary" onClick={onUpdateImage} disabled={isUploadingImage}>
+            {isUploadingImage ? "Uploading..." : "Update Image"}
+          </button>
+          {data.profileImage && (
+            <button className="btn btn-danger" onClick={onDeleteImage} disabled={isDeletingImage}>
+              {isDeletingImage ? "Removing..." : "Remove Image"}
+            </button>
+          )}
         </div>
 
-        <div className="profile-controls">
-          <label className="file-label">
-            <input ref={fileInputRef} type="file" accept="image/*" className="file-input" />
-          </label>
-          <button className="btn primary" onClick={onUpdateImage} disabled={uploading}>{uploading ? "Uploading…" : "Update Image"}</button>
-        </div>
-
-        {msg && <div className="profile-msg">{msg}</div>}
+        {errorMessage && <p className="profile-error">{errorMessage}</p>}
+        {successMessage && <p className="profile-success">{successMessage}</p>}
 
         <div className="profile-actions">
-          <Link to="/Users" className="btn dark">Users</Link>
-          <Link to="/logout" className="btn dark">Logout</Link>
+          <Link to="/users"><button className="btn btn-ghost">User Management</button></Link>
+          <Link to="/logout"><button className="btn btn-danger">Logout</button></Link>
         </div>
       </div>
     </div>

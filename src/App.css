@@ -1,59 +1,231 @@
 #root {
-  max-width: 1280px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 16px;
+  text-align: left;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.user-page,
+.profile-page {
+  margin-top: 12px;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+.user-card,
+.profile-card {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
 }
 
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.user-header,
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.muted {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
 }
 
-.card {
-  padding: 2em;
+.new-user-form,
+.profile-form,
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
-.read-the-docs {
-  color: #888;
+.profile-id,
+.profile-save-row {
+  grid-column: 1 / -1;
 }
 
-.button {
-  background-color: #4CAF50; /* Green */
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
+.profile-save-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 13px;
+  color: #374151;
+}
+
+.field input {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #ffffff;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  vertical-align: middle;
+}
+
+.user-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  background: #f3f4f6;
+  overflow: hidden;
+  font-weight: 600;
+  color: #374151;
+}
+
+.user-avatar-large,
+.avatar {
+  width: 90px;
+  height: 90px;
+}
+
+.user-avatar img,
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.avatar-fallback {
+  font-size: 24px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.upload-row,
+.modal-image-panel,
+.modal-image-actions,
+.profile-actions,
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.upload-row input[type="file"],
+.modal-image-controls input[type="file"] {
+  max-width: 280px;
+}
+
+.pill {
   display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  background: #f8fafc;
+}
+
+.btn {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
   cursor: pointer;
-  border-radius: 4px;
+  font-size: 14px;
+  background: #f9fafb;
+  color: #111827;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.btn-ghost {
+  background: #ffffff;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  width: min(540px, 96vw);
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.modal-image-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-error,
+.profile-error {
+  color: #b91c1c;
+  margin: 6px 0;
+}
+
+.modal-success,
+.profile-success {
+  color: #166534;
+  margin: 6px 0;
 }
