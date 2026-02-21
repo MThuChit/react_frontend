@@ -8,7 +8,7 @@ import Logout from './components/Logout';
 import Users from "./components/Users";
 import TestAPI from './components/test_api';
 import Items from './components/items';
-import { ItemDetail } from './components/itemDetail';
+import { ItemDetail } from './components/itemdetail';
 
 function App() {
     return (
