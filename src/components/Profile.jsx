@@ -1,4 +1,4 @@
-import { useUser } from "../context/UserProvider";
+import { useUser } from "../contexts/UserProvider";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 
